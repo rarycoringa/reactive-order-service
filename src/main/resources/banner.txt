@@ -1,0 +1,15 @@
+
+Universidade Federal do Rio Grande do Norte
+Departamento de Informática e Matemática Aplicada
+DIM0538 - Tóp. Esp. Eng. Soft. VIII (Arquiteturas Reativas)
+ __  __ _       _  ____  _                 
+|  \/  (_)_ __ (_)/ ___|| |_ ___  _ __ ___ 
+| |\/| | | '_ \| |\___ \| __/ _ \| '__/ _ \
+| |  | | | | | | | ___) | || (_) | | |  __/
+|_|  |_|_|_| |_|_||____/ \__\___/|_|  \___|
+
+Application: ${spring.application.name}
+Profile: ${spring.profiles.active}
+Port: ${server.port}
+Spring Version: ${spring-boot.version}
+Java Version: ${java.version}
