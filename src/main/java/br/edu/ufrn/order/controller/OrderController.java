@@ -1,7 +1,6 @@
 package br.edu.ufrn.order.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.edu.ufrn.order.record.CreateOrderRequestDTO;
+import br.edu.ufrn.order.record.OrderResponseDTO;
 import br.edu.ufrn.order.service.OrderService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

@@ -1,4 +1,4 @@
-package br.edu.ufrn.order.controller;
+package br.edu.ufrn.order.record;
 
 public record CreateOrderRequestDTO(
     String productId,
