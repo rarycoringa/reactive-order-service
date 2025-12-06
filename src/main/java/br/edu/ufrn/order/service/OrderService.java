@@ -1,4 +1,4 @@
-package br.edu.ufrn.stock.service;
+package br.edu.ufrn.order.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

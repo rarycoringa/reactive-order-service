@@ -4,6 +4,7 @@ services:
     container_name: order
     environment:
       - SERVER_PORT=8181
+      - SPRING_PROFILES_ACTIVE
     ports:
       - "8181:8181"
     networks:

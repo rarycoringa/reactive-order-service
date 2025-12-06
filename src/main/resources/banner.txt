@@ -9,7 +9,7 @@ DIM0538 - Tóp. Esp. Eng. Soft. VIII (Arquiteturas Reativas)
 |_|  |_|_|_| |_|_||____/ \__\___/|_|  \___|
 
 Application: ${spring.application.name}
-Profile: ${spring.profiles.active}
+Profile: ${spring.profiles.active:default}
 Port: ${server.port}
 Spring Version: ${spring-boot.version}
 Java Version: ${java.version}
