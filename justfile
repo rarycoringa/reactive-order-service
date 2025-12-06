@@ -5,9 +5,8 @@ run:
     mvn spring-boot:run
 
 up broker="rabbitmq" strategy="orchestration":
-    docker compose \
-        --env SPRING_PROFILES_ACTIVE={{broker}},{{strategy}} \
-        up --build --detach
+    SPRING_PROFILES_ACTIVE={{broker}},{{strategy}} \
+        docker compose up --build --detach
 
 down:
     docker compose down
