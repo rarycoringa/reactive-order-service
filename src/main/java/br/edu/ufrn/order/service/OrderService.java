@@ -5,9 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import br.edu.ufrn.order.controller.CreateOrderRequestDTO;
-import br.edu.ufrn.order.controller.OrderResponseDTO;
 import br.edu.ufrn.order.model.Order;
+import br.edu.ufrn.order.record.CreateOrderRequestDTO;
+import br.edu.ufrn.order.record.OrderResponseDTO;
 import br.edu.ufrn.order.repository.OrderRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
