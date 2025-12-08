@@ -50,7 +50,10 @@ public class Orchestrator {
 
     @Bean
     public Consumer<Event> sinkEvent() {
-        return event -> sink.tryEmitNext(event);
+        return event -> {
+            logger.info("Received event in sink: {}", event);
+            sink.tryEmitNext(event);
+        };
     }
 
     @PostConstruct
@@ -60,12 +63,15 @@ public class Orchestrator {
 
     public Flux<Command> supplyCommands() {
         return flux
+            .doOnNext(event -> logger.info("Received event: {}", event))
             .flatMap(this::handleEvent)
+            .doOnNext(command -> logger.info("Generated command: {}", command))
             .doOnNext(this::sendCommand)
+            .doOnNext(command -> logger.info("Sent command: {}", command))
             .share();
     }
 
-    public Mono<OrderResponseDTO> emitCreateOrderCommand(
+    public Mono<OrderResponseDTO> supplyCreateOrderCommand(
         String productId, Integer productQuantity, Integer splitInto, String cardNumber, String address
     ) {
         return Mono
@@ -77,6 +83,7 @@ public class Orchestrator {
                 splitInto,
                 cardNumber,
                 address))
+            .doOnNext(command -> logger.info("Created order command: {}", command))
             .doOnNext(this::sendCommand)
             .map(command -> new OrderResponseDTO(
                 null,
@@ -89,7 +96,6 @@ public class Orchestrator {
     }
 
     private Flux<Command> handleEvent(Event event) {
-        logger.info("Handling event: {}", event);
         return switch (event) {
             case OrderEvent e -> handleOrderEvent(e);
             case ProductEvent e -> handleProductEvent(e);

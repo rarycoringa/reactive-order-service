@@ -54,7 +54,8 @@ public class CommandProcessor {
                 order.productQuantity(),
                 order.splitInto(),
                 order.cardNumber(),
-                order.address()));
+                order.address()))
+            .doOnSuccess(orderEvent -> logger.info("Order created: {}", orderEvent));
     }
 
     private Mono<Event> cancelOrder(Command command) {
@@ -66,7 +67,8 @@ public class CommandProcessor {
                 command.productQuantity(),
                 command.splitInto(),
                 command.cardNumber(),
-                command.address()));
+                command.address()))
+            .doOnSuccess(orderEvent -> logger.info("Order cancelled: {}", orderEvent));
     }
 
     private Mono<Event> finishOrder(Command command) {
@@ -78,7 +80,8 @@ public class CommandProcessor {
                 command.productQuantity(),
                 command.splitInto(),
                 command.cardNumber(),
-                command.address()));
+                command.address()))
+            .doOnSuccess(orderEvent -> logger.info("Order finished: {}", orderEvent));
     }
 
 }
