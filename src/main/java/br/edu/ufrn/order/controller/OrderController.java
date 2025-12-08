@@ -11,21 +11,30 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.ufrn.order.record.CreateOrderRequestDTO;
 import br.edu.ufrn.order.record.OrderResponseDTO;
+import br.edu.ufrn.order.saga.orchestration.Orchestrator;
 import br.edu.ufrn.order.service.OrderService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/oders")
+@RequestMapping("/orders")
 public class OrderController {
     
     @Autowired
     private OrderService orderService;
 
-    // @PostMapping
-    // public Mono<OrderResponseDTO> createOrder(@RequestBody CreateOrderRequestDTO body) {
-    //     return orderService.createOrder(body);
-    // }
+    @Autowired
+    private Orchestrator orchestrator;
+
+    @PostMapping
+    public Mono<OrderResponseDTO> createOrder(@RequestBody CreateOrderRequestDTO body) {
+        return orchestrator.emitCreateOrderCommand(
+            body.productId(),
+            body.productQuantity(),
+            body.splitInto(),
+            body.cardNumber(),
+            body.address());
+    }
 
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<OrderResponseDTO> retrieveOrders() {
