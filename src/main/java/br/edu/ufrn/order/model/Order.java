@@ -20,18 +20,21 @@ public class Order {
     @Positive(message = "Product Quantity should be higher than zero.")
     private Integer productQuantity;
 
-    private String paymentChargeId;
-
-    private String paymentRefundId;
-
-    private String shippingId;
+    private Integer splitInto;
+    
+    private String cardNumber;
+    
+    private String address;
 
     @Indexed(direction = IndexDirection.DESCENDING)
     private Instant createdAt;
 
-    public Order(String productId, Integer productQuantity) {
+    public Order(String productId, Integer productQuantity, Integer splitInto, String cardNumber, String address) {
         this.productId = productId;
         this.productQuantity = productQuantity;
+        this.splitInto = splitInto;
+        this.cardNumber = cardNumber;
+        this.address = address;
         this.createdAt = Instant.now();
     }
 
@@ -47,28 +50,16 @@ public class Order {
         return productQuantity;
     }
 
-    public String getPaymentChargeId() {
-        return paymentChargeId;
+    public Integer getSplitInto() {
+        return splitInto;
     }
 
-    public void setPaymentChargeId(String paymentChargeId) {
-        this.paymentChargeId = paymentChargeId;
+    public String getCardNumber() {
+        return cardNumber;
     }
 
-    public String getPaymentRefundId() {
-        return paymentRefundId;
-    }
-
-    public void setPaymentRefundId(String paymentRefundId) {
-        this.paymentRefundId = paymentRefundId;
-    }
-
-    public String getShippingId() {
-        return shippingId;
-    }
-
-    public void setShippingId(String shippingId) {
-        this.shippingId = shippingId;
+    public String getAddress() {
+        return address;
     }
 
     public Instant getCreatedAt() {

@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.edu.ufrn.order.model.Order;
-import br.edu.ufrn.order.record.CreateOrderRequestDTO;
 import br.edu.ufrn.order.record.OrderResponseDTO;
 import br.edu.ufrn.order.repository.OrderRepository;
 import reactor.core.publisher.Flux;
@@ -20,18 +19,22 @@ public class OrderService {
     
     private final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
-    public Mono<OrderResponseDTO> createOrder(CreateOrderRequestDTO orderRequest) {
+    public Mono<OrderResponseDTO> createOrder(String productId, Integer productQuantity, Integer splitInto, String cardNumber, String address) {
         return orderRepository
             .save(new Order(
-                orderRequest.productId(),
-                orderRequest.productQuantity()))
+                    productId,
+                    productQuantity,
+                    splitInto,
+                    cardNumber,
+                    address
+                ))
             .map(order -> new OrderResponseDTO(
                 order.getId(),
                 order.getProductId(), 
                 order.getProductQuantity(),
-                order.getPaymentChargeId(),
-                order.getPaymentRefundId(),
-                order.getShippingId(),
+                order.getSplitInto(),
+                order.getCardNumber(),
+                order.getAddress(),
                 order.getCreatedAt()))
             .doOnSuccess(order -> logger.info("Order successfully created: id={}", order.id()));
     }
@@ -43,9 +46,9 @@ public class OrderService {
                 order.getId(),
                 order.getProductId(), 
                 order.getProductQuantity(),
-                order.getPaymentChargeId(),
-                order.getPaymentRefundId(),
-                order.getShippingId(),
+                order.getSplitInto(),
+                order.getCardNumber(),
+                order.getAddress(),
                 order.getCreatedAt()))
             .doOnNext(order -> logger.info("Order successfully retrieved: id={}", order.id()));
     }
@@ -58,44 +61,11 @@ public class OrderService {
                 order.getId(),
                 order.getProductId(), 
                 order.getProductQuantity(),
-                order.getPaymentChargeId(),
-                order.getPaymentRefundId(),
-                order.getShippingId(),
+                order.getSplitInto(),
+                order.getCardNumber(),
+                order.getAddress(),
                 order.getCreatedAt()))
             .doOnSuccess(order -> logger.info("Order successfully retrieved: id={}", order.id()));
-    }
-
-    public Mono<String> updatePaymentChargeId(String orderId, String paymentChargeId) {
-        return orderRepository
-            .findById(orderId)
-            .flatMap(order -> {
-                order.setPaymentChargeId(paymentChargeId);
-                return orderRepository.save(order);
-            })
-            .map(Order::getId)
-            .doOnSuccess(id -> logger.info("Payment Charge Id successfully updated: id={}, paymentChargeId={}", id, paymentChargeId));
-    }
-
-    public Mono<String> updatePaymentRefundId(String orderId, String paymentRefundId) {
-        return orderRepository
-            .findById(orderId)
-            .flatMap(order -> {
-                order.setPaymentRefundId(paymentRefundId);
-                return orderRepository.save(order);
-            })
-            .map(Order::getId)
-            .doOnSuccess(id -> logger.info("Payment Refund Id successfully updated: id={}, paymentRefundId={}", id, paymentRefundId));
-    }
-
-    public Mono<String> updateShippingId(String orderId, String shippingId) {
-        return orderRepository
-            .findById(orderId)
-            .flatMap(order -> {
-                order.setShippingId(shippingId);
-                return orderRepository.save(order);
-            })
-            .map(Order::getId)
-            .doOnSuccess(id -> logger.info("Shipping Id successfully updated: id={}, shippingId={}", id, shippingId));
     }
 
 }

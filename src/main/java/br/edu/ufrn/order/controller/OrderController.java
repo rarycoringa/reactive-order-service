@@ -22,10 +22,10 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    @PostMapping
-    public Mono<OrderResponseDTO> createOrder(@RequestBody CreateOrderRequestDTO body) {
-        return orderService.createOrder(body);
-    }
+    // @PostMapping
+    // public Mono<OrderResponseDTO> createOrder(@RequestBody CreateOrderRequestDTO body) {
+    //     return orderService.createOrder(body);
+    // }
 
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<OrderResponseDTO> retrieveOrders() {
