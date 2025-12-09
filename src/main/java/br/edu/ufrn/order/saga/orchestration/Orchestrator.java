@@ -34,7 +34,7 @@ public class Orchestrator {
     
     private static final Logger logger = LoggerFactory.getLogger(Orchestrator.class);
 
-    private final Sinks.Many<Event> sink = Sinks.many().multicast().onBackpressureBuffer();
+    private final Sinks.Many<Event> sink = Sinks.many().unicast().onBackpressureBuffer();
     private final Flux<Event> flux = sink.asFlux();
 
     @Autowired
@@ -43,10 +43,10 @@ public class Orchestrator {
     @Autowired
     private OrderService orderService;
 
-    private static final String ORDER_COMMAND_QUEUE = "order_commands";
-    private static final String PRODUCT_COMMAND_QUEUE = "product_commands";
-    private static final String PAYMENT_COMMAND_QUEUE = "payment_commands";
-    private static final String SHIPPING_COMMAND_QUEUE = "shipping_commands";
+    private static final String ORDER_COMMAND_BINDING = "send-order-command-out-0";
+    private static final String PRODUCT_COMMAND_BINDING = "send-product-command-out-0";
+    private static final String PAYMENT_COMMAND_BINDING = "send-payment-command-out-0";
+    private static final String SHIPPING_COMMAND_BINDING = "send-shipping-command-out-0";
 
     @Bean
     public Consumer<Event> sinkEvent() {
@@ -83,7 +83,6 @@ public class Orchestrator {
                 splitInto,
                 cardNumber,
                 address))
-            .doOnNext(command -> logger.info("Created order command: {}", command))
             .doOnNext(this::sendCommand)
             .map(command -> new OrderResponseDTO(
                 null,
@@ -92,7 +91,8 @@ public class Orchestrator {
                 command.splitInto(),
                 command.cardNumber(),
                 command.address(),
-                null));
+                null))
+            .doOnSuccess(orderResponse -> logger.info("Supplied create order command, returning response DTO: {}", orderResponse));
     }
 
     private Flux<Command> handleEvent(Event event) {
@@ -224,16 +224,17 @@ public class Orchestrator {
 
     private String chooseDestination(Command command) {
         return switch (command) {
-            case OrderCommand e -> ORDER_COMMAND_QUEUE;
-            case ProductCommand e -> PRODUCT_COMMAND_QUEUE;
-            case PaymentCommand e -> PAYMENT_COMMAND_QUEUE;
-            case ShippingCommand e -> SHIPPING_COMMAND_QUEUE;
+            case OrderCommand e -> ORDER_COMMAND_BINDING;
+            case ProductCommand e -> PRODUCT_COMMAND_BINDING;
+            case PaymentCommand e -> PAYMENT_COMMAND_BINDING;
+            case ShippingCommand e -> SHIPPING_COMMAND_BINDING;
         };
     }
 
     private void sendCommand(Command command) {
         String destination = chooseDestination(command);
         streamBridge.send(destination, command);
+        logger.info("Sent command to {}: {}", destination, command);
     }
 
 }
