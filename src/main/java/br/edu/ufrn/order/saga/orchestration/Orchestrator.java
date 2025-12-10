@@ -1,11 +1,11 @@
 package br.edu.ufrn.order.saga.orchestration;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -27,6 +27,7 @@ import jakarta.annotation.PostConstruct;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
 
 @Configuration
 @Profile("orchestration")
@@ -34,44 +35,71 @@ public class Orchestrator {
     
     private static final Logger logger = LoggerFactory.getLogger(Orchestrator.class);
 
-    private final Sinks.Many<Event> sink = Sinks.many().unicast().onBackpressureBuffer();
-    private final Flux<Event> flux = sink.asFlux();
+    private final Sinks.Many<Command> orderCommandSink = Sinks.many().unicast().onBackpressureBuffer();
+    private final Flux<Command> orderCommandFlux = orderCommandSink.asFlux();
 
-    @Autowired
-    private StreamBridge streamBridge;
+    private final Sinks.Many<Command> productCommandSink = Sinks.many().unicast().onBackpressureBuffer();
+    private final Flux<Command> productCommandFlux = productCommandSink.asFlux();
+
+    private final Sinks.Many<Command> paymentCommandSink = Sinks.many().unicast().onBackpressureBuffer();
+    private final Flux<Command> paymentCommandFlux = paymentCommandSink.asFlux();
+
+    private final Sinks.Many<Command> shippingCommandSink = Sinks.many().unicast().onBackpressureBuffer();
+    private final Flux<Command> shippingCommandFlux = shippingCommandSink.asFlux();
+
+    private final Sinks.Many<Event> eventSink = Sinks.many().unicast().onBackpressureBuffer();
+    private final Flux<Event> eventFlux = eventSink.asFlux();
 
     @Autowired
     private OrderService orderService;
 
-    private static final String ORDER_COMMAND_BINDING = "send-order-command-out-0";
-    private static final String PRODUCT_COMMAND_BINDING = "send-product-command-out-0";
-    private static final String PAYMENT_COMMAND_BINDING = "send-payment-command-out-0";
-    private static final String SHIPPING_COMMAND_BINDING = "send-shipping-command-out-0";
+    @Bean
+    public Supplier<Flux<Command>> supplyOrderCommand() {
+        return () -> orderCommandFlux
+            .doOnNext(command -> logger.info("Supplying order command: {}", command));
+    }
 
     @Bean
-    public Consumer<Event> sinkEvent() {
-        return event -> {
-            logger.info("Received event in sink: {}", event);
-            sink.tryEmitNext(event);
-        };
+    public Supplier<Flux<Command>> supplyProductCommand() {
+        return () -> productCommandFlux
+            .doOnNext(command -> logger.info("Supplying product command: {}", command));
+    }
+
+    @Bean
+    public Supplier<Flux<Command>> supplyPaymentCommand() {
+        return () -> paymentCommandFlux
+            .doOnNext(command -> logger.info("Supplying payment command: {}", command));
+    }
+
+    @Bean
+    public Supplier<Flux<Command>> supplyShippingCommand() {
+        return () -> shippingCommandFlux
+            .doOnNext(command -> logger.info("Supplying shipping command: {}", command));
+    }
+
+    @Bean
+    public Consumer<Flux<Event>> sinkEvent() {
+        return flux -> flux
+            .doOnNext(event -> logger.info("Sinking event: {}", event))
+            .doOnNext(eventSink::tryEmitNext)
+            .subscribe();
+    }
+
+    public Flux<Command> process() {
+        return eventFlux
+            .flatMap(this::handleEvent)
+            .doOnNext(this::sinkCommand);
     }
 
     @PostConstruct
-    public void subscribeSupplyCommands() {
-        supplyCommands().subscribe();
+    public void startProcessing() {
+        process()
+            .subscribeOn(Schedulers.boundedElastic())
+            .doOnError(error -> logger.error("Error processing events: ", error))
+            .subscribe();
     }
 
-    public Flux<Command> supplyCommands() {
-        return flux
-            .doOnNext(event -> logger.info("Received event: {}", event))
-            .flatMap(this::handleEvent)
-            .doOnNext(command -> logger.info("Generated command: {}", command))
-            .doOnNext(this::sendCommand)
-            .doOnNext(command -> logger.info("Sent command: {}", command))
-            .share();
-    }
-
-    public Mono<OrderResponseDTO> supplyCreateOrderCommand(
+    public Mono<OrderResponseDTO> emitCreateOrderCommand(
         String productId, Integer productQuantity, Integer splitInto, String cardNumber, String address
     ) {
         return Mono
@@ -83,7 +111,8 @@ public class Orchestrator {
                 splitInto,
                 cardNumber,
                 address))
-            .doOnNext(this::sendCommand)
+            .doOnNext(orderCommandSink::tryEmitNext)
+            .doOnNext(command -> logger.info("Supplied create order command: {}", command))
             .map(command -> new OrderResponseDTO(
                 null,
                 command.productId(),
@@ -92,7 +121,16 @@ public class Orchestrator {
                 command.cardNumber(),
                 command.address(),
                 null))
-            .doOnSuccess(orderResponse -> logger.info("Supplied create order command, returning response DTO: {}", orderResponse));
+            .doOnSuccess(orderResponse -> logger.info("Created order response DTO: {}", orderResponse));
+    }
+
+    private void sinkCommand(Command command) {
+        switch (command) {
+            case OrderCommand c -> orderCommandSink.tryEmitNext(c);
+            case ProductCommand c -> productCommandSink.tryEmitNext(c);
+            case PaymentCommand c -> paymentCommandSink.tryEmitNext(c);
+            case ShippingCommand c -> shippingCommandSink.tryEmitNext(c);
+        }
     }
 
     private Flux<Command> handleEvent(Event event) {
@@ -220,21 +258,6 @@ public class Orchestrator {
                     )));
             default -> Flux.empty();
         };
-    }
-
-    private String chooseDestination(Command command) {
-        return switch (command) {
-            case OrderCommand e -> ORDER_COMMAND_BINDING;
-            case ProductCommand e -> PRODUCT_COMMAND_BINDING;
-            case PaymentCommand e -> PAYMENT_COMMAND_BINDING;
-            case ShippingCommand e -> SHIPPING_COMMAND_BINDING;
-        };
-    }
-
-    private void sendCommand(Command command) {
-        String destination = chooseDestination(command);
-        streamBridge.send(destination, command);
-        logger.info("Sent command to {}: {}", destination, command);
     }
 
 }

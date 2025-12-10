@@ -28,7 +28,7 @@ public class OrderController {
 
     @PostMapping
     public Mono<OrderResponseDTO> createOrder(@RequestBody CreateOrderRequestDTO body) {
-        return orchestrator.supplyCreateOrderCommand(
+        return orchestrator.emitCreateOrderCommand(
             body.productId(),
             body.productQuantity(),
             body.splitInto(),
