@@ -5,7 +5,13 @@ public sealed interface Event permits OrderEvent, ProductEvent, PaymentEvent, Sh
     String orderId();
     String productId();
     Integer productQuantity();
+    String productName();
+    Double productPrice();
+    String chargeId();
+    String refundId();
+    Double amount();
     Integer splitInto();
     String cardNumber();
+    String shippingId();
     String address();
 }

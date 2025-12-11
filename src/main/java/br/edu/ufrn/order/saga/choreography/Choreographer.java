@@ -77,8 +77,14 @@ public class Choreographer implements Saga {
             null,
             productId,
             productQuantity,
+            null,
+            null,
+            null,
+            null,
+            null,
             splitInto,
             cardNumber,
+            null,
             address));
         return Mono.empty();
     }
@@ -91,8 +97,14 @@ public class Choreographer implements Saga {
                     order.id(),
                     order.productId(),
                     order.productQuantity(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
                     order.splitInto(),
                     order.cardNumber(),
+                    null,
                     order.address()));
             
             default -> Mono.empty();
@@ -106,8 +118,14 @@ public class Choreographer implements Saga {
                 event.orderId(),
                 event.productId(),
                 event.productQuantity(),
+                event.productName(),
+                event.productPrice(),
+                event.chargeId(),
+                event.refundId(),
+                event.amount(),
                 event.splitInto(),
                 event.cardNumber(),
+                event.shippingId(),
                 event.address()));
 
             case PRODUCT_RESERVED, PRODUCT_RETURNED -> Mono.empty();
@@ -123,8 +141,14 @@ public class Choreographer implements Saga {
                 event.orderId(),
                 event.productId(),
                 event.productQuantity(),
+                event.productName(),
+                event.productPrice(),
+                event.chargeId(),
+                event.refundId(),
+                event.amount(),
                 event.splitInto(),
                 event.cardNumber(),
+                event.shippingId(),
                 event.address()));
 
             case PAYMENT_CHARGED, PAYMENT_REFUNDED -> Mono.empty();
@@ -140,8 +164,14 @@ public class Choreographer implements Saga {
                 event.orderId(),
                 event.productId(),
                 event.productQuantity(),
+                event.productName(),
+                event.productPrice(),
+                event.chargeId(),
+                event.refundId(),
+                event.amount(),
                 event.splitInto(),
                 event.cardNumber(),
+                event.shippingId(),
                 event.address()));
 
             case SHIPPING_ACCEPTED -> Mono.just(new OrderEvent(
@@ -149,8 +179,14 @@ public class Choreographer implements Saga {
                 event.orderId(),
                 event.productId(),
                 event.productQuantity(),
+                event.productName(),
+                event.productPrice(),
+                event.chargeId(),
+                event.refundId(),
+                event.amount(),
                 event.splitInto(),
                 event.cardNumber(),
+                event.shippingId(),
                 event.address()));
 
             default -> Mono.empty();
