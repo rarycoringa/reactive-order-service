@@ -14,11 +14,11 @@ import reactor.core.publisher.Mono;
 @Service
 public class OrderService {
     
+    private final Logger logger = LoggerFactory.getLogger(OrderService.class);
+    
     @Autowired
     private OrderRepository orderRepository;
     
-    private final Logger logger = LoggerFactory.getLogger(OrderService.class);
-
     public Mono<OrderResponseDTO> createOrder(String productId, Integer productQuantity, Integer splitInto, String cardNumber, String address) {
         return orderRepository
             .save(new Order(
@@ -35,8 +35,7 @@ public class OrderService {
                 order.getSplitInto(),
                 order.getCardNumber(),
                 order.getAddress(),
-                order.getCreatedAt()))
-            .doOnSuccess(order -> logger.info("Order successfully created: id={}", order.id()));
+                order.getCreatedAt()));
     }
 
     public Flux<OrderResponseDTO> retrieveOrders() {
@@ -49,8 +48,7 @@ public class OrderService {
                 order.getSplitInto(),
                 order.getCardNumber(),
                 order.getAddress(),
-                order.getCreatedAt()))
-            .doOnNext(order -> logger.info("Order successfully retrieved: id={}", order.id()));
+                order.getCreatedAt()));
     }
 
     public Mono<OrderResponseDTO> retrieveOrder(String orderId) {
@@ -64,8 +62,7 @@ public class OrderService {
                 order.getSplitInto(),
                 order.getCardNumber(),
                 order.getAddress(),
-                order.getCreatedAt()))
-            .doOnSuccess(order -> logger.info("Order successfully retrieved: id={}", order.id()));
+                order.getCreatedAt()));
     }
 
 }
