@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.ufrn.order.record.CreateOrderRequestDTO;
 import br.edu.ufrn.order.record.OrderResponseDTO;
-import br.edu.ufrn.order.saga.orchestration.Orchestrator;
+import br.edu.ufrn.order.saga.Saga;
 import br.edu.ufrn.order.service.OrderService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,11 +24,11 @@ public class OrderController {
     private OrderService orderService;
 
     @Autowired
-    private Orchestrator orchestrator;
+    private Saga saga;
 
     @PostMapping
-    public Mono<OrderResponseDTO> createOrder(@RequestBody CreateOrderRequestDTO body) {
-        return orchestrator.emitCreateOrderCommand(
+    public Mono<Object> createOrder(@RequestBody CreateOrderRequestDTO body) {
+        return saga.createOrder(
             body.productId(),
             body.productQuantity(),
             body.splitInto(),

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import br.edu.ufrn.order.record.OrderResponseDTO;
+import br.edu.ufrn.order.saga.Saga;
 import br.edu.ufrn.order.saga.orchestration.command.Command;
 import br.edu.ufrn.order.saga.orchestration.command.CommandType;
 import br.edu.ufrn.order.saga.orchestration.command.OrderCommand;
@@ -31,7 +31,7 @@ import reactor.core.scheduler.Schedulers;
 
 @Configuration
 @Profile("orchestration")
-public class Orchestrator {
+public class Orchestrator implements Saga {
     
     private static final Logger logger = LoggerFactory.getLogger(Orchestrator.class);
 
@@ -99,8 +99,13 @@ public class Orchestrator {
             .subscribe();
     }
 
-    public Mono<OrderResponseDTO> emitCreateOrderCommand(
-        String productId, Integer productQuantity, Integer splitInto, String cardNumber, String address
+    @Override
+    public Mono<Object> createOrder(
+        String productId,
+        Integer productQuantity,
+        Integer splitInto,
+        String cardNumber,
+        String address
     ) {
         return Mono
             .just(new OrderCommand(
@@ -113,14 +118,7 @@ public class Orchestrator {
                 address))
             .doOnNext(orderCommandSink::tryEmitNext)
             .doOnNext(command -> logger.info("Supplied create order command: {}", command))
-            .map(command -> new OrderResponseDTO(
-                null,
-                command.productId(),
-                command.productQuantity(),
-                command.splitInto(),
-                command.cardNumber(),
-                command.address(),
-                null))
+            .flatMap(command -> Mono.empty())
             .doOnSuccess(orderResponse -> logger.info("Created order response DTO: {}", orderResponse));
     }
 
